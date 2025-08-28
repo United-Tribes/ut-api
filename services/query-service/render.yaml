@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: united-tribes
+    runtime: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn src.app:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: USE_MOCK
+        value: false
+      - key: AWS_REGION
+        value: us-east-1
+      - key: SERVICE_NAME
+        value: united-tribes-render
+      - key: VECTOR_STORE_URL
+        value: https://ut-vector-store.apprunner.us-east-1.amazonaws.com
+      - key: AWS_ACCESS_KEY_ID
+        sync: false  # Set via Render dashboard
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false  # Set via Render dashboard

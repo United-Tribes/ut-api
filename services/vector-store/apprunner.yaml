@@ -1,0 +1,22 @@
+version: 1.0
+runtime: python3
+build:
+  commands:
+    build:
+      - echo "Installing dependencies for ut-vector-store"
+      - pip install --upgrade pip
+      - pip install -r requirements.txt
+run:
+  runtime-version: 3.9
+  command: python3 -m uvicorn src.app:app --host 0.0.0.0 --port 8000
+  network:
+    port: 8000
+  env:
+    - name: PORT
+      value: "8000"
+    - name: AWS_REGION
+      value: "us-east-1"
+    - name: SERVICE_NAME
+      value: "ut-vector-store"
+    - name: USE_MOCK
+      value: "false"

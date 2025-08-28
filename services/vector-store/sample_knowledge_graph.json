@@ -1,0 +1,145 @@
+{
+  "relationships": [
+    {
+      "source_entity": "Bob Dylan",
+      "target_entity": "Woody Guthrie",
+      "relationship_type": "influenced_by",
+      "confidence": 0.95,
+      "evidence": "Dylan has repeatedly cited Woody Guthrie as his primary inspiration, calling him 'my last idol.' Dylan's early folk style and social commentary directly mirror Guthrie's approach to music as a vehicle for social change.",
+      "source_attribution": {
+        "source": "Rolling Stone",
+        "url": "https://www.rollingstone.com/music/music-features/bob-dylan-woody-guthrie-influence-456789/",
+        "publication_type": "article"
+      },
+      "temporal_context": "1960s folk revival period",
+      "metadata": {
+        "cultural_significance": "Foundational influence in American folk music"
+      }
+    },
+    {
+      "source_entity": "Bob Dylan",
+      "target_entity": "Robert Johnson",
+      "relationship_type": "influenced_by", 
+      "confidence": 0.88,
+      "evidence": "Dylan discovered Robert Johnson's recordings in the early 1960s and has described them as revelatory. Johnson's Delta blues style and mystical lyrics deeply impacted Dylan's songwriting approach.",
+      "source_attribution": {
+        "source": "NPR",
+        "url": "https://www.npr.org/2011/05/08/136056308/bob-dylan-on-robert-johnson-a-mysterious-influence",
+        "publication_type": "interview"
+      },
+      "temporal_context": "Early 1960s blues influence",
+      "metadata": {
+        "cultural_significance": "Blues foundation in folk-rock transition"
+      }
+    },
+    {
+      "source_entity": "Bob Dylan",
+      "target_entity": "Hank Williams",
+      "relationship_type": "influenced_by",
+      "confidence": 0.82,
+      "evidence": "Dylan has frequently mentioned Hank Williams as a crucial early influence, particularly Williams' ability to convey deep emotion through simple, direct lyrics.",
+      "source_attribution": {
+        "source": "Billboard",
+        "url": "https://www.billboard.com/articles/news/magazine-feature/dylan-williams-influence-country-folk",
+        "publication_type": "feature"
+      },
+      "temporal_context": "Early songwriting development",
+      "metadata": {
+        "cultural_significance": "Country music crossover into folk"
+      }
+    },
+    {
+      "source_entity": "Taylor Swift",
+      "target_entity": "Bob Dylan",
+      "relationship_type": "influenced_by",
+      "confidence": 0.79,
+      "evidence": "Swift has cited Dylan's storytelling ability and lyrical complexity as major influences on her songwriting evolution, particularly evident in albums like 'folklore' and 'evermore'.",
+      "source_attribution": {
+        "source": "Pitchfork",
+        "url": "https://pitchfork.com/features/interview/taylor-swift-dylan-influence-folklore/",
+        "publication_type": "interview"
+      },
+      "temporal_context": "2020s indie-folk period",
+      "metadata": {
+        "cultural_significance": "Pop-to-indie evolution influenced by classic songwriting"
+      }
+    },
+    {
+      "source_entity": "Amy Winehouse",
+      "target_entity": "Sarah Vaughan",
+      "relationship_type": "influenced_by",
+      "confidence": 0.91,
+      "evidence": "Winehouse frequently cited Sarah Vaughan as her primary vocal influence, particularly Vaughan's ability to blend jazz sophistication with emotional vulnerability.",
+      "source_attribution": {
+        "source": "The Guardian",
+        "url": "https://www.theguardian.com/music/amy-winehouse-sarah-vaughan-influence",
+        "publication_type": "profile"
+      },
+      "temporal_context": "Early 2000s neo-soul movement",
+      "metadata": {
+        "cultural_significance": "Jazz vocal traditions in contemporary soul"
+      }
+    },
+    {
+      "source_entity": "Amy Winehouse",
+      "target_entity": "Dinah Washington",
+      "relationship_type": "influenced_by",
+      "confidence": 0.87,
+      "evidence": "Winehouse's phrasing and emotional delivery show clear influences from Dinah Washington's blues and jazz stylings, particularly in her album 'Back to Black'.",
+      "source_attribution": {
+        "source": "NPR",
+        "url": "https://www.npr.org/music/artists/amy-winehouse-dinah-washington-connection",
+        "publication_type": "analysis"
+      },
+      "temporal_context": "Back to Black album development",
+      "metadata": {
+        "cultural_significance": "Blues-jazz fusion in modern soul"
+      }
+    },
+    {
+      "source_entity": "Hip Hop",
+      "target_entity": "Jazz",
+      "relationship_type": "samples_from",
+      "confidence": 0.94,
+      "evidence": "Hip hop has extensively sampled jazz records since its inception, with artists like A Tribe Called Quest, Gang Starr, and Kendrick Lamar building entire sounds around jazz foundations.",
+      "source_attribution": {
+        "source": "Rolling Stone",
+        "url": "https://www.rollingstone.com/music/music-features/jazz-hip-hop-sampling-history-456789/",
+        "publication_type": "feature"
+      },
+      "temporal_context": "1980s-present sampling culture",
+      "metadata": {
+        "cultural_significance": "Foundation of hip hop production techniques"
+      }
+    },
+    {
+      "source_entity": "Indie Rock",
+      "target_entity": "Post-Punk",
+      "relationship_type": "evolved_from",
+      "confidence": 0.86,
+      "evidence": "The indie rock explosion of the 2000s drew heavily from post-punk bands like Joy Division, Gang of Four, and Television, emphasizing DIY ethics and angular guitar work.",
+      "source_attribution": {
+        "source": "Pitchfork",
+        "url": "https://pitchfork.com/features/lists-and-guides/indie-rock-post-punk-lineage/",
+        "publication_type": "analysis"
+      },
+      "temporal_context": "2000s indie rock revival",
+      "metadata": {
+        "cultural_significance": "Post-punk revival in mainstream alternative rock"
+      }
+    }
+  ],
+  "_s3_metadata": {
+    "bucket": "ut-processed-content",
+    "key": "sample-knowledge-graph.json", 
+    "loaded_at": "2025-08-27T00:45:00.000Z",
+    "size_bytes": 5420,
+    "last_modified": "2025-08-27T00:45:00.000Z"
+  },
+  "enhancement_info": {
+    "total_relationships": 8,
+    "sources": ["Rolling Stone", "NPR", "Billboard", "Pitchfork", "The Guardian"],
+    "confidence_range": [0.79, 0.95],
+    "generated_for": "demonstration"
+  }
+}

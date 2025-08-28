@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  vector-store:
+    build: 
+      context: ./services/vector-store
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8000"
+    environment:
+      - AWS_REGION=us-east-1
+      - UT_PROCESSED_BUCKET=ut-processed-content
+      - USE_MOCK=true
+      - SERVICE_NAME=ut-vector-store-dev
+      - PORT=8000
+    volumes:
+      - ./services/vector-store/src:/app/src:ro
+      - vector_indices_dev:/app/indices
+    command: ["uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    networks:
+      - ut-api-dev
+
+  query-service:
+    build:
+      context: ./services/query-service  
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8000"
+    environment:
+      - VECTOR_STORE_URL=http://vector-store:8000
+      - PORT=8000
+      - SERVICE_NAME=ut-query-service-dev
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    volumes:
+      - ./services/query-service/src:/app/src:ro
+    command: ["uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    depends_on:
+      - vector-store
+    networks:
+      - ut-api-dev
+
+volumes:
+  vector_indices_dev:
+    driver: local
+
+networks:
+  ut-api-dev:
+    driver: bridge

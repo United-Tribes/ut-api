@@ -1,0 +1,38 @@
+# UT-Vector-Store Requirements
+
+# Core dependencies
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+python-multipart==0.0.6
+
+# Vector operations
+faiss-cpu==1.7.4
+numpy==1.24.3
+scipy==1.11.4
+
+# AWS Bedrock for embeddings
+boto3==1.34.0
+botocore==1.34.0
+
+# Data processing
+pandas==2.1.0
+python-dateutil==2.8.2
+
+# Configuration
+python-dotenv==1.0.0
+pyyaml==6.0.1
+
+# Storage
+aiofiles==23.2.1
+h5py==3.10.0
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+
+# Development
+black==23.11.0
+isort==5.12.0
+mypy==1.7.1
