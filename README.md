@@ -47,13 +47,13 @@ curl -X POST "http://localhost:8001/query" \
 
 ### Production API Access
 ```bash
-# Get your API key at https://api.unitedtribes.com/signup
-export UT_API_KEY="your-api-key"
+# Production endpoint (currently deployed on AWS ECS)
+export API_BASE_URL="http://ut-api-alb-470552730.us-east-1.elb.amazonaws.com"
 
 # Query the Cultural Cartographer
-curl -X POST "https://api.unitedtribes.com/query" \
-  -H "Authorization: Bearer $UT_API_KEY" \
-  -d '{"query": "Bob Dylan folk music influences"}'
+curl -X POST "$API_BASE_URL/query" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "Bob Dylan folk music influences", "k": 5}'
 ```
 
 ## 📋 API Services
@@ -192,15 +192,21 @@ Both APIs are **read-only** - no data modification, completely safe for public a
 
 ## 🚀 Deployment
 
+### Current Production Status
+**Deployed on AWS ECS (Fargate) with Application Load Balancer**
+
+- **Query Service**: ✅ Running - Claude-powered Cultural Cartographer
+- **Vector Store**: ⚠️  Service available, data loading in progress
+- **Load Balancer**: `ut-api-alb-470552730.us-east-1.elb.amazonaws.com`
+- **ECS Cluster**: `ut-api-cluster`
+
 ### Production Deployment
 ```bash
-# Deploy to AWS App Runner
-./scripts/deploy.sh production
+# Deploy to AWS ECS via ECR
+./scripts/deploy.sh development
 
-# Or use Terraform
-cd terraform/
-terraform plan
-terraform apply
+# Check service status
+aws ecs describe-services --cluster ut-api-cluster --services ut-query-service-service ut-vector-store-service
 ```
 
 ### Development Environment
