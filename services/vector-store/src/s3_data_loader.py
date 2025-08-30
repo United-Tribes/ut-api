@@ -219,35 +219,119 @@ class S3DataLoader:
                 raise
     
     async def _find_latest_enhanced_data(self) -> str:
-        """Find the latest date with enhanced knowledge graph data"""
+        """Find the latest date with enhanced knowledge graph data using robust object listing"""
         
         prefix = "enhanced-knowledge-graph/"
         
         try:
-            # List all dates under enhanced-knowledge-graph/
-            response = self.s3_client.list_objects_v2(
+            logger.info(f"Searching for enhanced knowledge graph files in {self.bucket_name}/{prefix}")
+            
+            # Use paginator to handle large result sets
+            paginator = self.s3_client.get_paginator('list_objects_v2')
+            page_iterator = paginator.paginate(
                 Bucket=self.bucket_name,
-                Prefix=prefix,
-                Delimiter='/'
+                Prefix=prefix
             )
             
-            # Extract dates from common prefixes
-            dates = []
-            for prefix_info in response.get('CommonPrefixes', []):
-                prefix_path = prefix_info['Prefix']
-                # Extract date from path like "enhanced-knowledge-graph/2025/08/26/"
-                parts = prefix_path.strip('/').split('/')
-                if len(parts) >= 4:  # enhanced-knowledge-graph/YYYY/MM/DD/
-                    date_str = f"{parts[1]}/{parts[2]}/{parts[3]}"
-                    dates.append(date_str)
+            # Find all complete knowledge graph files
+            knowledge_graph_files = []
             
-            if not dates:
-                raise ValueError("No enhanced knowledge graph data found in S3")
+            for page in page_iterator:
+                logger.debug(f"Processing page with {len(page.get('Contents', []))} objects")
+                
+                for obj in page.get('Contents', []):
+                    key = obj['Key']
+                    
+                    # Look for complete knowledge graph JSON files
+                    if 'complete_knowledge_graph' in key and key.endswith('.json'):
+                        # Extract date from path like enhanced-knowledge-graph/YYYY/MM/DD/file.json
+                        parts = key.split('/')
+                        
+                        # Validate path structure
+                        if len(parts) >= 5:  # enhanced-knowledge-graph/YYYY/MM/DD/filename.json
+                            try:
+                                year = parts[1]
+                                month = parts[2]
+                                day = parts[3]
+                                
+                                # Basic validation of date components
+                                if (year.isdigit() and len(year) == 4 and
+                                    month.isdigit() and 1 <= int(month) <= 12 and
+                                    day.isdigit() and 1 <= int(day) <= 31):
+                                    
+                                    knowledge_graph_files.append({
+                                        'key': key,
+                                        'date_str': f"{year}/{month}/{day}",
+                                        'last_modified': obj.get('LastModified'),
+                                        'size': obj.get('Size', 0)
+                                    })
+                                    
+                                    logger.debug(f"Found knowledge graph file: {key} (date: {year}/{month}/{day})")
+                            except (IndexError, ValueError) as e:
+                                logger.warning(f"Failed to parse date from path {key}: {e}")
+                                continue
             
-            # Return the latest date
-            latest = max(dates)
-            logger.info(f"Found latest enhanced data date: {latest}")
-            return latest
+            if not knowledge_graph_files:
+                # Fallback: look for any JSON file in the enhanced-knowledge-graph directory
+                logger.warning("No 'complete_knowledge_graph' files found, searching for any JSON files...")
+                
+                page_iterator = paginator.paginate(
+                    Bucket=self.bucket_name,
+                    Prefix=prefix
+                )
+                
+                for page in page_iterator:
+                    for obj in page.get('Contents', []):
+                        key = obj['Key']
+                        
+                        if key.endswith('.json'):
+                            parts = key.split('/')
+                            if len(parts) >= 5:
+                                try:
+                                    year = parts[1]
+                                    month = parts[2]
+                                    day = parts[3]
+                                    
+                                    if (year.isdigit() and month.isdigit() and day.isdigit()):
+                                        knowledge_graph_files.append({
+                                            'key': key,
+                                            'date_str': f"{year}/{month}/{day}",
+                                            'last_modified': obj.get('LastModified'),
+                                            'size': obj.get('Size', 0)
+                                        })
+                                        logger.info(f"Found alternative JSON file: {key}")
+                                except:
+                                    continue
+            
+            if not knowledge_graph_files:
+                error_msg = f"No enhanced knowledge graph data found in s3://{self.bucket_name}/{prefix}"
+                logger.error(error_msg)
+                
+                # Log what we did find for debugging
+                logger.info("Listing first 5 objects found in bucket for debugging:")
+                response = self.s3_client.list_objects_v2(
+                    Bucket=self.bucket_name,
+                    Prefix=prefix,
+                    MaxKeys=5
+                )
+                for obj in response.get('Contents', []):
+                    logger.info(f"  - {obj['Key']} (size: {obj.get('Size', 0)} bytes)")
+                
+                raise ValueError(error_msg)
+            
+            # Sort by date string (YYYY/MM/DD format sorts correctly as strings)
+            # Secondary sort by last_modified if dates are the same
+            knowledge_graph_files.sort(
+                key=lambda x: (x['date_str'], x.get('last_modified') or datetime(1970, 1, 1)),
+                reverse=True
+            )
+            
+            latest_file = knowledge_graph_files[0]
+            logger.info(f"Found latest enhanced knowledge graph: {latest_file['key']}")
+            logger.info(f"  Date: {latest_file['date_str']}, Size: {latest_file['size']} bytes")
+            
+            # Return the date string
+            return latest_file['date_str']
             
         except Exception as e:
             logger.error(f"Failed to find latest enhanced data: {e}")

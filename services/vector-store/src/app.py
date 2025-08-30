@@ -312,15 +312,25 @@ async def health_check():
         
         # Check index manager
         if index_manager:
-            dependencies["index_manager"] = "healthy"
-            loaded_indices = index_manager.get_loaded_indices()
-            memory_usage = index_manager.get_memory_usage_mb()
+            try:
+                loaded_indices = index_manager.get_loaded_indices()
+                memory_usage = index_manager.get_memory_usage_mb()
+                dependencies["index_manager"] = "healthy"
+            except Exception as e:
+                logger.warning(f"Index manager methods failed: {e}")
+                dependencies["index_manager"] = "degraded"
+                loaded_indices = []
+                memory_usage = 0.0
         else:
             dependencies["index_manager"] = "unhealthy"
         
-        overall_status = "healthy" if all(
-            status == "healthy" for status in dependencies.values()
-        ) else "unhealthy"
+        # Determine overall status
+        if all(status == "healthy" for status in dependencies.values()):
+            overall_status = "healthy"
+        elif any(status in ["healthy", "degraded"] for status in dependencies.values()):
+            overall_status = "degraded"
+        else:
+            overall_status = "unhealthy"
         
         return HealthResponse(
             status=overall_status,
