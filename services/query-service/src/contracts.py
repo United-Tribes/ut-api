@@ -41,6 +41,7 @@ class EnhancedSourceAttribution(BaseModel):
     # Enhanced attribution fields
     evidence_text: str = Field(..., description="Exact quoted evidence text")
     evidence_type: str = Field(default="contextual", description="Type of evidence (direct_quote, contextual, etc)")
+    excerpt: str = Field(..., description="Relevant excerpt from source")
     
     # Position tracking
     start_position: Optional[int] = Field(default=None, description="Start position in source")

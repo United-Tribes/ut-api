@@ -12,8 +12,6 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse
 import uvicorn
 
 from .contracts import QueryRequest, QueryResponse, EnhancedQueryResponse, HealthResponse
@@ -99,231 +97,38 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Static files not needed - serving inline HTML
+# API endpoints only - no web interface
 
-@app.get("/", response_class=HTMLResponse)
-async def serve_ui():
-    """Serve the Cultural Cartographer web interface"""
-    try:
-        with open("static/index.html", "r") as f:
-            return HTMLResponse(content=f.read())
-    except FileNotFoundError:
-        return HTMLResponse(content="""
-<!DOCTYPE html>
-<html>
-<head>
-    <title>United Tribes - Media Discovery and Consumption for the AI Era</title>
-    <style>
-        body { 
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
-            max-width: 900px; 
-            margin: 0 auto; 
-            padding: 40px 20px; 
-            background: #f5f2ed; 
-            color: #3d2f2a;
-        }
-        h1 { 
-            color: #2a1f1a; 
-            margin-bottom: 8px; 
-            font-size: 42px;
-            font-weight: 300;
-            letter-spacing: -1px;
-        }
-        .tagline { 
-            color: #6b5d54; 
-            margin-bottom: 35px; 
-            font-size: 18px;
-            font-weight: 300;
-        }
-        .query-box { 
-            width: 100%; 
-            padding: 18px 20px; 
-            margin: 15px 0; 
-            font-size: 16px; 
-            border: 2px solid #c4b5aa; 
-            border-radius: 6px; 
-            box-sizing: border-box; 
-            background: #fdfcfa;
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            color: #3d2f2a;
-        }
-        .query-box::placeholder {
-            color: #9b8b80;
-        }
-        .query-box:focus {
-            outline: none;
-            border-color: #8b7355;
-            background: white;
-        }
-        .submit-btn { 
-            padding: 18px 40px; 
-            font-size: 16px; 
-            background: #6b5d54; 
-            color: #f5f2ed; 
-            border: none; 
-            cursor: pointer; 
-            border-radius: 6px; 
-            transition: all 0.3s; 
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            font-weight: 500;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-        .submit-btn:hover { 
-            background: #4a3f37; 
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(74, 63, 55, 0.2);
-        }
-        .response { 
-            background: white; 
-            padding: 30px; 
-            margin: 25px 0; 
-            white-space: pre-wrap; 
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            border-radius: 6px;
-            box-shadow: 0 2px 12px rgba(74, 63, 55, 0.08);
-            line-height: 1.7;
-            max-width: 100%;
-            color: #3d2f2a;
-            border: 1px solid #e8e2db;
-        }
-        .response a {
-            color: #8b7355;
-            text-decoration: underline;
-        }
-        .response a:hover {
-            color: #6b5d54;
-        }
-        .sources { margin-top: 30px; }
-        .sources h3 { 
-            color: #2a1f1a; 
-            margin-bottom: 20px; 
-            font-weight: 400;
-            font-size: 20px;
-        }
-        .source-item { 
-            background: white; 
-            padding: 18px; 
-            margin: 12px 0; 
-            border-left: 4px solid #8b7355; 
-            border-radius: 4px;
-            box-shadow: 0 1px 6px rgba(74, 63, 55, 0.06);
-            border-right: 1px solid #e8e2db;
-            border-top: 1px solid #e8e2db;
-            border-bottom: 1px solid #e8e2db;
-        }
-        .source-item strong { 
-            color: #2a1f1a; 
-            display: block; 
-            margin-bottom: 8px; 
-            font-weight: 500;
-        }
-        .source-item em { 
-            color: #6b5d54; 
-            display: block; 
-            margin: 10px 0; 
-            line-height: 1.6; 
-            font-style: normal;
-        }
-        .source-item a { 
-            color: #8b7355; 
-            text-decoration: none; 
-            font-weight: 500; 
-        }
-        .source-item a:hover { 
-            text-decoration: underline; 
-        }
-        .source-item small {
-            color: #9b8b80;
-        }
-    </style>
-</head>
-<body>
-    <h1>United Tribes</h1>
-    <p class="tagline">Media Discovery and Consumption for the AI Era</p>
-    
-    <div>
-        <input type="text" id="queryInput" class="query-box" placeholder="Ask us about music and books" />
-        <button onclick="submitQuery()" class="submit-btn">DISCOVER</button>
-    </div>
-    
-    <div id="response" class="response" style="display: none;"></div>
-    <div id="sources" class="sources" style="display: none;"></div>
-    
-    <script>
-        async function submitQuery() {
-            const query = document.getElementById('queryInput').value;
-            if (!query.trim()) return;
-            
-            const responseDiv = document.getElementById('response');
-            const sourcesDiv = document.getElementById('sources');
-            
-            responseDiv.textContent = 'Mapping cultural connections...';
-            responseDiv.style.display = 'block';
-            sourcesDiv.style.display = 'none';
-            
-            try {
-                const response = await fetch('/query', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({query: query, k: 10})
-                });
-                
-                const data = await response.json();
-                
-                // Convert URLs in text to clickable links
-                let responseText = data.response;
-                responseText = responseText.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
-                responseText = responseText.replace(/(https?:\/\/[^\s\]]+)/g, '<a href="$1" target="_blank">$1</a>');
-                
-                responseDiv.innerHTML = responseText;
-                
-                if (data.sources && data.sources.length > 0) {
-                    // Clean up source names
-                    const cleanSourceName = (name) => {
-                        if (name.includes('Fresh_Air')) return 'NPR Fresh Air';
-                        if (name.includes('All_Songs_Considered')) return 'NPR All Songs Considered';
-                        if (name.includes('Broken_Record')) return 'Broken Record Podcast';
-                        if (name.includes('Sound_Opinions')) return 'Sound Opinions';
-                        if (name.includes('Switched_On_Pop')) return 'Switched On Pop';
-                        if (name.includes('.Txt Analysis')) {
-                            return name.split('_').slice(0, 3).join(' ');
-                        }
-                        return name;
-                    };
-                    
-                    // Sort sources by confidence score
-                    const sortedSources = data.sources.sort((a, b) => b.confidence - a.confidence);
-                    
-                    sourcesDiv.innerHTML = '<h3>Sources & Evidence (Ranked by Relevance):</h3>' + 
-                        sortedSources.map((source, idx) => 
-                            `<div class="source-item">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <strong>${idx + 1}. ${cleanSourceName(source.source)}</strong>
-                                    <span style="background: ${source.confidence > 0.7 ? '#4CAF50' : source.confidence > 0.4 ? '#FF9800' : '#f44336'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">
-                                        ${(source.confidence * 100).toFixed(0)}% relevant
-                                    </span>
-                                </div>
-                                <em>${source.excerpt}</em>
-                                ${source.relationship_type ? `<small style="color: #666;">Relationship: ${source.relationship_type}</small><br>` : ''}
-                                ${source.url ? `<a href="${source.url}" target="_blank">View original source →</a>` : ''}
-                            </div>`
-                        ).join('');
-                    sourcesDiv.style.display = 'block';
+@app.get("/")
+async def api_root():
+    """API root endpoint with service information"""
+    return {
+        "service": "ut-query-service",
+        "description": "Cultural Cartographer RAG pipeline with S3 enhanced knowledge graph",
+        "version": "1.0.0",
+        "status": "online",
+        "endpoints": {
+            "query": "POST /query - Cultural Cartographer query processing",
+            "health": "GET /health - Service health and dependencies",
+            "stats": "GET /stats - Query statistics and performance",
+            "api_info": "GET /api/info - Detailed API information"
+        },
+        "integration": {
+            "vector_store": "ut-vector-store with S3 enhanced knowledge graph",
+            "llm_provider": "AWS Bedrock Claude 3 Haiku",
+            "knowledge_base": "2,787+ relationships with source attribution"
+        },
+        "usage": {
+            "example_request": {
+                "method": "POST",
+                "url": "/query",
+                "body": {
+                    "query": "tell me about the Beatles",
+                    "k": 5
                 }
-            } catch (error) {
-                responseDiv.textContent = 'Error: ' + error.message;
             }
         }
-        
-        document.getElementById('queryInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') submitQuery();
-        });
-    </script>
-</body>
-</html>
-        """)
+    }
 
 @app.post("/query", response_model=QueryResponse)
 async def process_query(request: QueryRequest):
