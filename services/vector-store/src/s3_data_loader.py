@@ -54,11 +54,26 @@ class S3DataLoader:
         logger.info("Shutting down S3 data loader...")
         self.s3_client = None
     
-    async def load_enhanced_knowledge_graph(self, date: Optional[str] = None) -> Dict[str, Any]:
-        """Load the enhanced knowledge graph from S3"""
+    async def load_enhanced_knowledge_graph(self, date: Optional[str] = None, use_discovery: bool = True) -> Dict[str, Any]:
+        """Load the enhanced knowledge graph from S3
+        
+        Args:
+            date: Optional date string to load specific version
+            use_discovery: If True, loads discovery-oriented graph with narrative structure
+        """
         
         if not self.s3_client:
             raise RuntimeError("S3 data loader not initialized")
+        
+        # Check for discovery-oriented graph first if enabled
+        if use_discovery:
+            try:
+                discovery_kg = await self._load_discovery_knowledge_graph()
+                if discovery_kg:
+                    logger.info("Loaded discovery-oriented knowledge graph with narrative structure")
+                    return discovery_kg
+            except Exception as e:
+                logger.warning(f"Could not load discovery graph, falling back to standard: {e}")
         
         # If no date specified, look for the most recent one
         if not date:
@@ -217,6 +232,37 @@ class S3DataLoader:
                 return []
             else:
                 raise
+    
+    async def _load_discovery_knowledge_graph(self) -> Optional[Dict[str, Any]]:
+        """Load the discovery-oriented knowledge graph with narrative structure"""
+        
+        discovery_key = "discovery-knowledge-graph/current/discovery_kg_main.json"
+        
+        try:
+            logger.info(f"Loading discovery knowledge graph: s3://{self.bucket_name}/{discovery_key}")
+            
+            response = self.s3_client.get_object(
+                Bucket=self.bucket_name,
+                Key=discovery_key
+            )
+            
+            content = json.loads(response['Body'].read().decode('utf-8'))
+            
+            # Validate it's a discovery-oriented graph
+            if content.get('architecture') == 'discovery-oriented':
+                logger.info(f"Discovery graph loaded: {content.get('total_relationships', 0)} relationships, "
+                          f"{len(content.get('narrative_threads', {}))} narrative threads")
+                return content
+            else:
+                logger.warning("Graph is not discovery-oriented architecture")
+                return None
+                
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'NoSuchKey':
+                logger.info("No discovery knowledge graph found")
+            else:
+                logger.error(f"Error loading discovery graph: {e}")
+            return None
     
     async def _find_latest_enhanced_data(self) -> str:
         """Find the latest date with enhanced knowledge graph data using robust object listing"""

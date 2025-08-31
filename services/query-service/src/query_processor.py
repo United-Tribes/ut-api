@@ -11,6 +11,7 @@ from .contracts import (
 )
 from .vector_client import VectorStoreClient
 from .cultural_cartographer import CulturalCartographer
+from .discovery_processor import DiscoveryProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +21,9 @@ class QueryProcessor:
     def __init__(self, vector_client: VectorStoreClient, cultural_cartographer: CulturalCartographer):
         self.vector_client = vector_client
         self.cultural_cartographer = cultural_cartographer
+        self.discovery_processor = DiscoveryProcessor()
         self.data_summary = None
+        self.knowledge_graph = None
         
     async def initialize(self):
         """Initialize the query processor"""
@@ -109,8 +112,23 @@ class QueryProcessor:
                 # Fallback to legacy attribution format
                 source_attributions = self._extract_source_attributions(search_results)
             
-            # Step 5: Extract discovery pathways (would be enhanced with NLP in production)
-            discovery_pathways = self._extract_discovery_pathways(cultural_response, search_results)
+            # Step 5: Enhance with discovery architecture if available
+            if self.knowledge_graph and self.knowledge_graph.get('architecture') == 'discovery-oriented':
+                enhanced_attributions = self.discovery_processor.enhance_sources_with_discovery(
+                    enhanced_attributions, self.knowledge_graph
+                )
+                
+                # Generate discovery-oriented response
+                cultural_response = self.discovery_processor.generate_discovery_response(
+                    query, enhanced_attributions, self.knowledge_graph
+                )
+                
+                # Extract rich discovery metadata
+                discovery_metadata = self.discovery_processor.extract_discovery_metadata(enhanced_attributions)
+                discovery_pathways = discovery_metadata.get('discovery_pathways', [])
+            else:
+                # Step 5: Extract discovery pathways (would be enhanced with NLP in production)
+                discovery_pathways = self._extract_discovery_pathways(cultural_response, search_results)
             
             # Step 6: Build query statistics
             stats = {
