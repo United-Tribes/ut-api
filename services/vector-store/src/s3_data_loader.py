@@ -54,26 +54,35 @@ class S3DataLoader:
         logger.info("Shutting down S3 data loader...")
         self.s3_client = None
     
-    async def load_enhanced_knowledge_graph(self, date: Optional[str] = None, use_discovery: bool = True) -> Dict[str, Any]:
+    async def load_enhanced_knowledge_graph(self, date: Optional[str] = None, use_entity_centric: bool = True) -> Dict[str, Any]:
         """Load the enhanced knowledge graph from S3
         
         Args:
             date: Optional date string to load specific version
-            use_discovery: If True, loads discovery-oriented graph with narrative structure
+            use_entity_centric: If True, loads entity-centric graph with cross-media discovery
         """
         
         if not self.s3_client:
             raise RuntimeError("S3 data loader not initialized")
         
-        # Check for discovery-oriented graph first if enabled
-        if use_discovery:
+        # Check for entity-centric graph first (Justin's preferred structure)
+        if use_entity_centric:
             try:
-                discovery_kg = await self._load_discovery_knowledge_graph()
-                if discovery_kg:
-                    logger.info("Loaded discovery-oriented knowledge graph with narrative structure")
-                    return discovery_kg
+                entity_kg = await self._load_entity_centric_knowledge_graph()
+                if entity_kg:
+                    logger.info("Loaded entity-centric knowledge graph with cross-media discovery")
+                    return entity_kg
             except Exception as e:
-                logger.warning(f"Could not load discovery graph, falling back to standard: {e}")
+                logger.warning(f"Could not load entity-centric graph, falling back to relationships: {e}")
+        
+        # Fallback: Check for discovery-oriented graph
+        try:
+            discovery_kg = await self._load_discovery_knowledge_graph()
+            if discovery_kg:
+                logger.info("Loaded discovery-oriented knowledge graph with narrative structure")
+                return discovery_kg
+        except Exception as e:
+            logger.warning(f"Could not load discovery graph, falling back to standard: {e}")
         
         # If no date specified, look for the most recent one
         if not date:
@@ -232,6 +241,37 @@ class S3DataLoader:
                 return []
             else:
                 raise
+    
+    async def _load_entity_centric_knowledge_graph(self) -> Optional[Dict[str, Any]]:
+        """Load the entity-centric knowledge graph (Justin's preferred structure)"""
+        
+        entity_key = "entity-centric-kg/current/entity_centric_main.json"
+        
+        try:
+            logger.info(f"Loading entity-centric knowledge graph: s3://{self.bucket_name}/{entity_key}")
+            
+            response = self.s3_client.get_object(
+                Bucket=self.bucket_name,
+                Key=entity_key
+            )
+            
+            content = json.loads(response['Body'].read().decode('utf-8'))
+            
+            # Validate it's an entity-centric graph
+            if content.get('architecture') == 'entity-centric':
+                logger.info(f"Entity-centric graph loaded: {content.get('total_entities', 0)} entities with "
+                          f"cross-media discovery features")
+                return content
+            else:
+                logger.warning("Graph is not entity-centric architecture")
+                return None
+                
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'NoSuchKey':
+                logger.info("No entity-centric knowledge graph found")
+            else:
+                logger.error(f"Error loading entity-centric graph: {e}")
+            return None
     
     async def _load_discovery_knowledge_graph(self) -> Optional[Dict[str, Any]]:
         """Load the discovery-oriented knowledge graph with narrative structure"""
