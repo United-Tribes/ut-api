@@ -249,6 +249,7 @@ class QueryProcessor:
             confidence=confidence,
             evidence_text=evidence_text,
             evidence_type=chunk_metadata.get('evidence_type', 'contextual'),
+            excerpt=evidence_text,  # Use evidence_text as excerpt
             start_position=start_pos,
             end_position=end_pos,
             paragraph_number=paragraph_nums[0] if paragraph_nums else None,
@@ -281,6 +282,7 @@ class QueryProcessor:
             confidence=result.similarity_score,
             evidence_text=evidence_text,
             evidence_type='contextual',  # Default for legacy
+            excerpt=evidence_text,  # Use evidence_text as excerpt
             url=source_info.get('url'),
             published_date=source_info.get('published_date'),
             citation=citation,
