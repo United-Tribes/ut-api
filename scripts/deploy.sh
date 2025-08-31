@@ -30,6 +30,15 @@ fi
 
 echo "✅ Prerequisites check passed"
 
+# Run pre-deployment data integrity checks
+echo "🛡️  Running pre-deployment validation..."
+if python3 ../data-integrity-checks.py --mode inventory; then
+    echo "✅ Pre-deployment validation passed"
+else
+    echo "❌ Pre-deployment validation failed - aborting deployment"
+    exit 1
+fi
+
 # Build and push Docker images
 echo "🔨 Building Docker images..."
 
@@ -150,6 +159,15 @@ aws apprunner wait service-operation-succeeded --service-arn "$QUERY_SERVICE_ARN
 
 # Get query service URL
 QUERY_SERVICE_URL=$(aws apprunner describe-service --service-arn "$QUERY_SERVICE_ARN" --query 'Service.ServiceUrl' --output text)
+
+echo ""
+echo "🔍 Running post-deployment validation..."
+if python3 ../data-integrity-checks.py --mode post-deployment; then
+    echo "✅ Post-deployment validation passed"
+else
+    echo "❌ Post-deployment validation failed - deployment may have issues"
+    echo "⚠️  Check logs and data integrity before proceeding"
+fi
 
 echo ""
 echo "🎉 Deployment Complete!"
