@@ -244,11 +244,9 @@ Response:"""
             # Build influence-focused response
             influence_rels = [r for r in relationships if r[0] == 'influence'][:3]
             
-            mock_response = f"""🗺️ **Cultural Cartographer Analysis**
+            mock_response = f"""After analyzing {artist_name}'s cultural footprint, their influences span multiple genres and eras. Here's a comprehensive breakdown based on our {context.total_relationships:,} documented relationships:
 
-Looking at {artist_name}'s influences across our {context.total_relationships:,} documented relationships, I've discovered {results_count} key connections that illuminate their artistic journey.
-
-**Primary Influences & Connections:**
+## 1. Primary Influences & Connections
 """
             # Add specific relationships found
             if influence_rels:
@@ -260,23 +258,23 @@ Looking at {artist_name}'s influences across our {context.total_relationships:,}
             
             mock_response += f"""
 
-**Cross-Media Context:**
+## 2. Cross-Media Context
 These connections appear across {len(sources)} different sources including {', '.join(sources[:2])}, providing multiple perspectives on these artistic relationships.
 
-**Explore Further:**
+## 3. Recommendations
 → Trace the generational influence chains
 → Discover parallel artists in similar movements  
 → Examine the cultural context of these connections
 
-**Sources:** {' | '.join(sources[:3])}"""
+### Summary
+**Key sources**: {', '.join(sources[:3])}
+**Total connections found**: {results_count}"""
         
         else:
             # General exploratory response
-            mock_response = f"""🗺️ **Cultural Cartographer Analysis**
+            mock_response = f"""Based on "{query}", our analysis of {context.total_relationships:,} documented relationships reveals {results_count} significant connections across multiple cultural domains.
 
-Exploring "{query}" through our {context.total_relationships:,} documented relationships reveals {results_count} fascinating connections.
-
-**What I've Discovered:**
+## 1. Key Discoveries
 """
             # Add actual relationships found
             if relationships:
@@ -287,21 +285,23 @@ Exploring "{query}" through our {context.total_relationships:,} documented relat
             if unique_entities:
                 mock_response += f"""
 
-**Key Artists in This Network:**
+## 2. Artist Network
 {', '.join(unique_entities[:5])}
 
-**Featured in:** {' | '.join(sources[:3])}
+## 3. Source Attribution
+{' | '.join(sources[:3])}
 
-**Continue Exploring:**
+### Recommendations
 → Deep dive into specific artist relationships
 → Trace influence patterns across genres
 → Discover unexpected connections"""
             else:
                 mock_response += f"""
 
-**Featured Sources:** {' | '.join(sources[:3])}
+### Sources
+{' | '.join(sources[:3])}
 
-**Explore Related Topics:**
+### Recommendations
 → Try searching for specific artists
 → Ask about musical movements or genres  
 → Explore collaboration networks"""
